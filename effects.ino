@@ -1010,15 +1010,12 @@ String dotsEffect(char mode, bool strip){
 
 // Aurora Boralis setup
 // declare any static variables needed here!
-static BorealisWave* waves[W_COUNT];
-#include <time.h>
-
 //LED CONFIG
 #define LED_DENSITY 1         //1 = Every LED is used, 2 = Every second LED is used.. and so on
 
 //WAVE CONFIG
 #define W_COUNT 6                 //Number of simultaneous waves
-#define W_SPEED_FACTOR 3          //Higher number, higher speed
+#define W_SPEED_FACTOR 50         //Higher number, higher speed
 #define W_WIDTH_FACTOR 3          //Higher number, smaller waves
 #define W_COLOR_WEIGHT_PRESET 3   //What color weighting to choose
 #define W_RANDOM_SEED 11          //Change this seed for a different pattern. If you read from an analog input here you can get a different pattern everytime.
@@ -1065,71 +1062,74 @@ byte getWeightedColor(byte weighting) {
   };
 };
 
-String borealisEffect(char mode, bool strip){
-  class BorealisWave {
-    private:
-      int ttl = random(500, 1501);
-      byte basecolor = getWeightedColor(W_COLOR_WEIGHT_PRESET);
-      float basealpha = random(50, 101) / (float)100;
-      int age = 0;
-      int width = random(NUM_LEDS / 10, NUM_LEDS / W_WIDTH_FACTOR);
-      float center = random(101) / (float)100 * NUM_LEDS;
-      bool goingleft = random(0, 2) == 0;
-      float speed = random(10, 30) / (float)100 * W_SPEED_FACTOR;
-      bool alive = true;
-    public:
-      CRGB* getColorForLED(int ledIndex) {      
-        if(ledIndex < center - width / 2 || ledIndex > center + width / 2) {
-          //Position out of range of this wave
-          return NULL;
+class BorealisWave {
+  private:
+    int ttl = random(500, 1501);
+    byte basecolor = getWeightedColor(W_COLOR_WEIGHT_PRESET);
+    float basealpha = random(50, 101) / (float)100;
+    int age = 0;
+    int width = random(NUM_LEDS / 10, NUM_LEDS / W_WIDTH_FACTOR);
+    float center = random(101) / (float)100 * NUM_LEDS;
+    bool goingleft = random(0, 2) == 0;
+    float speed = random(10, 30) / (float)100 * W_SPEED_FACTOR;
+    bool alive = true;
+  public:
+    CRGB* getColorForLED(int ledIndex) {      
+      if(ledIndex < center - width / 2 || ledIndex > center + width / 2) {
+        //Position out of range of this wave
+        return NULL;
+      } else {
+        CRGB* rgb = new CRGB();
+        //Offset of this led from center of wave
+        //The further away from the center, the dimmer the LED
+        int offset = abs(ledIndex - center);
+        float offsetFactor = (float)offset / (width / 2);
+        //The age of the wave determines it brightness.
+        //At half its maximum age it will be the brightest.
+        float ageFactor = 1;        
+        if((float)age / ttl < 0.5) {
+          ageFactor = (float)age / (ttl / 2);
         } else {
-          CRGB* rgb = new CRGB();
-          //Offset of this led from center of wave
-          //The further away from the center, the dimmer the LED
-          int offset = abs(ledIndex - center);
-          float offsetFactor = (float)offset / (width / 2);
-          //The age of the wave determines it brightness.
-          //At half its maximum age it will be the brightest.
-          float ageFactor = 1;        
-          if((float)age / ttl < 0.5) {
-            ageFactor = (float)age / (ttl / 2);
-          } else {
-            ageFactor = (float)(ttl - age) / ((float)ttl * 0.5);
-          }
-          //Calculate color based on above factors and basealpha value
-          rgb -> r = allowedcolors[basecolor][0] * (1 - offsetFactor) * ageFactor * basealpha;
-          rgb -> g = allowedcolors[basecolor][1] * (1 - offsetFactor) * ageFactor * basealpha;
-          rgb -> b = allowedcolors[basecolor][2] * (1 - offsetFactor) * ageFactor * basealpha;
-          return rgb;
+          ageFactor = (float)(ttl - age) / ((float)ttl * 0.5);
         }
-      };
-      //Change position and age of wave
-      //Determine if its sill "alive"
-      void update() {
+        //Calculate color based on above factors and basealpha value
+        rgb -> r = allowedcolors[basecolor][0] * (1 - offsetFactor) * ageFactor * basealpha;
+        rgb -> g = allowedcolors[basecolor][1] * (1 - offsetFactor) * ageFactor * basealpha;
+        rgb -> b = allowedcolors[basecolor][2] * (1 - offsetFactor) * ageFactor * basealpha;
+        return rgb;
+      }
+    };
+    //Change position and age of wave
+    //Determine if its sill "alive"
+    void update() {
+      if(goingleft) {
+        center -= speed;
+      } else {
+        center += speed;
+      }
+      age++;
+      if(age > ttl) {
+        alive = false;
+      } else {
         if(goingleft) {
-          center -= speed;
+          if(center + width / 2 < 0) {
+            alive = false;
+          }
         } else {
-          center += speed;
-        }
-        age++;
-        if(age > ttl) {
-          alive = false;
-        } else {
-          if(goingleft) {
-            if(center + width / 2 < 0) {
-              alive = false;
-            }
-          } else {
-            if(center - width / 2 > NUM_LEDS) {
-              alive = false;
-            }
+          if(center - width / 2 > NUM_LEDS) {
+            alive = false;
           }
         }
-      };
-      bool stillAlive() {
-        return alive;
-      };
-  };
+      }
+    };
+    bool stillAlive() {
+      return alive;
+    };
+};
+static BorealisWave* waves[W_COUNT];
+#include <time.h>
+
+String borealisEffect(char mode, bool strip){
   switch (mode){
     case RUN: {
       //CRGB leds[NUM_LEDS];
@@ -1157,13 +1157,11 @@ String borealisEffect(char mode, bool strip){
               if(rgb != NULL) {      
                 mixedRgb += *rgb;
               }
+              delete []rgb;
             }
-            delete []rgb;
+            leds[strip][i] = mixedRgb;
           }
-//          setPixel(i, mixedRgb[0], mixedRgb[1], mixedRgb[2]);
-          leds[i] = mixedRgb;
         }
-//        showStrip();
       }
       return "";  // IF the effect code controls brightness return "BR"
       break;

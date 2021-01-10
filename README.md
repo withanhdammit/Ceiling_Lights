@@ -5,6 +5,4 @@ This takes https://github.com/pinkywafer/PinkyLEDs/ and adds the https://github.
 
 This is the board I'm using: https://www.amazon.com/dp/B07PRMJ6QS/
 
-This is the LED strip I'm using (right now two strips, total 600 LEDs, ultimately about 950 LEDs for where it's going to be installed) https://www.aliexpress.com/item/1005001889892245.html
-
-LED strip is WS2815 (called WS2812B in the code)
+This is the LED strip I'm using, WS2815, 60 LEDs/m, IP30 (right now two strips, total 600 LEDs, ultimately about 3.25 strips or 950 LEDs for where it's going to be installed) https://www.aliexpress.com/item/1005001889892245.html

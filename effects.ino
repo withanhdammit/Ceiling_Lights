@@ -1010,6 +1010,7 @@ String dotsEffect(char mode, bool strip){
 
 // Aurora Boralis setup
 // declare any static variables needed here!
+static BorealisWave* waves[W_COUNT];
 #include <time.h>
 
 //LED CONFIG
@@ -1132,7 +1133,6 @@ String borealisEffect(char mode, bool strip){
   switch (mode){
     case RUN: {
       CRGB leds[NUM_LEDS];
-      BorealisWave* waves[W_COUNT];
       randomSeed(W_RANDOM_SEED);
       Serial.begin(9600);
       //FastLED.addLeds<LED_TYPE, PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
@@ -1163,9 +1163,10 @@ String borealisEffect(char mode, bool strip){
                 mixedRgb += *rgb;
               }
             }
-//          delete []rgb;
+            delete []rgb;
           }
 //          setPixel(i, mixedRgb[0], mixedRgb[1], mixedRgb[2]);
+          leds[i] = mixedRgb;
         }
 //        showStrip();
       }

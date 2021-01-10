@@ -1071,7 +1071,8 @@ class BorealisWave {
     int width = random(NUM_LEDS / 10, NUM_LEDS / W_WIDTH_FACTOR);
     float center = random(101) / (float)100 * NUM_LEDS;
     bool goingleft = random(0, 2) == 0;
-    float speed = random(10, 30) / (float)100 * W_SPEED_FACTOR;
+    //float speed = random(10, 30) / (float)100 * W_SPEED_FACTOR;
+    float speed = random(10, 30) / (float)100 * (animationSpeed / 5);
     bool alive = true;
   public:
     CRGB* getColorForLED(int ledIndex) {      

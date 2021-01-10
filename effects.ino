@@ -1132,15 +1132,10 @@ String borealisEffect(char mode, bool strip){
   };
   switch (mode){
     case RUN: {
-      CRGB leds[NUM_LEDS];
-      randomSeed(W_RANDOM_SEED);
-      Serial.begin(9600);
+      //CRGB leds[NUM_LEDS];
+      //Serial.begin(9600);
       //FastLED.addLeds<LED_TYPE, PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
       //FastLED.setBrightness(brightness);
-      //Initial creating of waves
-      for(int i = 0; i < W_COUNT; i++) {
-        waves[i] = new BorealisWave();
-      };
       for(int i = 0; i < W_COUNT; i++) {
         //Update values of wave
         waves[i] -> update();
@@ -1174,6 +1169,11 @@ String borealisEffect(char mode, bool strip){
       break;
     case INITIALIZE:
       // Initialize any variables to start the effect here.
+      //Initial creating of waves
+      randomSeed(W_RANDOM_SEED);
+      for(int i = 0; i < W_COUNT; i++) {
+        waves[i] = new BorealisWave();
+      };
       return "Ok";
       break;
     case GET_NAME:
